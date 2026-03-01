@@ -13,3 +13,5 @@ To start:
 1. Update the `homepage` attribute of _package.json_
 2. Update the `base` attribute of _vite.config.ts_ to match the `homepage` attribute
 3. `npm run deploy`
+
+![Plan](<Mortgage Calculator App Mock.excalidraw.svg>)
