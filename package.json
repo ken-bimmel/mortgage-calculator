@@ -19,7 +19,8 @@
     "@mui/material": "^7.3.8",
     "gh-pages": "^6.3.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-number-format": "^5.4.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -46,5 +47,5 @@
     "*.{ts,tsx}": "eslint",
     "*.{ts,tsx,md,html,css}": "prettier --write --ignore-unknown"
   },
-  "homepage": "http://ken-bimmel.github.io/react-template"
+  "homepage": "http://ken-bimmel.github.io/mortgage-calculator"
 }
