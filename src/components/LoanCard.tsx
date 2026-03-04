@@ -1,8 +1,20 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
-import { Card, CardContent, Grid, TextField, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  TextField,
+  Typography
+} from "@mui/material";
 import { NumericFormat } from "react-number-format";
+import { v4 as uuid } from "uuid";
 
+import DollarNumber from "./DollarNumber";
+
+import { EXTRA_PAYMENT_STEP, STEP_TYPES, type Step } from "../constants/steps";
 import {
   amortizedLoanPaymentAmount,
   amortizedLoanTotalAmount
@@ -26,6 +38,20 @@ const LoanCard: React.FC<LoanCardProps> = ({ loanNumber }) => {
   const [originalRate, setOriginalRate] = useState<number>(
     DEFAULT_ORIGINAL_RATE
   );
+  const [selectedStep, setSelectedStep] = useState<Step | null>(
+    EXTRA_PAYMENT_STEP
+  );
+  const [steps, setSteps] = useState<Step[]>([]);
+
+  const createStep = useCallback(() => {
+    setSteps((currSteps) => {
+      if (selectedStep !== null) {
+        const newStep = { ...selectedStep, key: uuid() };
+        currSteps.push(newStep);
+      }
+      return currSteps;
+    });
+  }, [selectedStep]);
 
   return (
     <Card style={{ minWidth: "600px" }}>
@@ -83,11 +109,7 @@ const LoanCard: React.FC<LoanCardProps> = ({ loanNumber }) => {
               </Grid>
               <Grid>
                 <Typography variant="body2">
-                  <NumericFormat
-                    displayType="text"
-                    thousandSeparator
-                    valueIsNumericString
-                    prefix="$"
+                  <DollarNumber
                     value={amortizedLoanPaymentAmount(
                       originalAmount,
                       originalRate,
@@ -103,11 +125,7 @@ const LoanCard: React.FC<LoanCardProps> = ({ loanNumber }) => {
               </Grid>
               <Grid>
                 <Typography variant="body2">
-                  <NumericFormat
-                    displayType="text"
-                    thousandSeparator
-                    valueIsNumericString
-                    prefix="$"
+                  <DollarNumber
                     value={
                       amortizedLoanTotalAmount(
                         originalAmount,
@@ -125,11 +143,7 @@ const LoanCard: React.FC<LoanCardProps> = ({ loanNumber }) => {
               </Grid>
               <Grid>
                 <Typography variant="body2">
-                  <NumericFormat
-                    displayType="text"
-                    thousandSeparator
-                    valueIsNumericString
-                    prefix="$"
+                  <DollarNumber
                     value={
                       amortizedLoanTotalAmount(
                         originalAmount,
@@ -142,8 +156,34 @@ const LoanCard: React.FC<LoanCardProps> = ({ loanNumber }) => {
               </Grid>
             </Grid>
           </Grid>
+          <Grid container size={12} justifyContent="center" alignItems="center">
+            <Grid size={6}>
+              <Autocomplete
+                options={STEP_TYPES}
+                value={selectedStep}
+                onChange={(e, newValue) => {
+                  setSelectedStep(newValue);
+                }}
+                renderInput={(params) => <TextField {...params} label="Step" />}
+              />
+            </Grid>
+            <Grid size={3}>
+              <Button variant="outlined" onClick={createStep}>
+                Add Step
+              </Button>
+            </Grid>
+          </Grid>
           <Grid size={12} container spacing={4} direction="column">
-            {/* Timeline goes here */}
+            {
+              // ts-expect-error testing
+              steps.map((step, index) => {
+                console.log({ step, index });
+                return React.createElement(step.component, {
+                  index,
+                  key: step.key
+                });
+              })
+            }
           </Grid>
           <Grid container>
             <Grid size={4}>

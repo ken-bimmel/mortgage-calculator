@@ -12,15 +12,20 @@ export const amortizedLoanPaymentAmount = (
 ): number => {
   const convertedInterestRate = annualInterestRate / 100;
   const periodicRate = convertedInterestRate / 12;
-  return parseFloat(
-    (
-      principal /
-      (((1 + periodicRate) ** term - 1) /
-        (periodicRate * (1 + periodicRate) ** term))
-    ).toFixed(2)
+  return (
+    principal /
+    (((1 + periodicRate) ** term - 1) /
+      (periodicRate * (1 + periodicRate) ** term))
   );
 };
 
+/**
+ * Calculates the total cost and interest cost of an amortized loan
+ * @param principal The principal of the loan to be amortized
+ * @param annualInterestRate The annual interest rate, expressed as a percentage (i.e. 6.5% = `6.5`)
+ * @param term The length of the loan in integer months
+ * @returns The total amount spent on the loan and the amount spent on interest
+ */
 export const amortizedLoanTotalAmount = (
   principal: number,
   annualInterestRate: number,
@@ -31,7 +36,7 @@ export const amortizedLoanTotalAmount = (
     annualInterestRate,
     term
   );
-  const total = parseFloat((monthlyPayment * term).toFixed(2));
+  const total = monthlyPayment * term;
   const interest = total - principal;
   return { total, interest };
 };
