@@ -1,6 +1,7 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import { MenuItem, TextField } from "@mui/material";
+import EventIcon from "@mui/icons-material/Event";
+import { IconButton, InputAdornment, MenuItem, TextField } from "@mui/material";
 import { NumericFormat, PatternFormat } from "react-number-format";
 
 import { PAYMENT_FREQUENCIES, type PaymentFrequency } from "../types";
@@ -118,10 +119,20 @@ export const DateField: React.FC<DateFieldProps> = ({
   error,
   helperText
 }) => {
+  const pickerRef = useRef<HTMLInputElement>(null);
   const complete = /^\d{4}-\d{2}-\d{2}$/.test(value);
   const invalid = complete && !isValidIsoDate(value);
   const shownError =
     error ?? (invalid ? "Enter a valid date (YYYY-MM-DD)." : null);
+  const openPicker = () => {
+    const input = pickerRef.current;
+    if (!input) return;
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  };
   return (
     <PatternFormat
       customInput={TextField}
@@ -132,6 +143,40 @@ export const DateField: React.FC<DateFieldProps> = ({
       placeholder="YYYY-MM-DD"
       inputMode="numeric"
       value={value}
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                edge="end"
+                aria-label={`Choose ${label.toLowerCase()} from calendar`}
+                onClick={openPicker}
+              >
+                <EventIcon />
+              </IconButton>
+              <input
+                ref={pickerRef}
+                type="date"
+                tabIndex={-1}
+                aria-hidden
+                value={complete && !invalid ? value : ""}
+                onChange={(event) => {
+                  if (event.target.value) onChange(event.target.value);
+                }}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  bottom: 0,
+                  width: 0,
+                  height: 0,
+                  opacity: 0,
+                  pointerEvents: "none"
+                }}
+              />
+            </InputAdornment>
+          )
+        }
+      }}
       error={Boolean(shownError)}
       helperText={helper(shownError, helperText ?? "YYYY-MM-DD")}
       onValueChange={(values, { source }) => {
