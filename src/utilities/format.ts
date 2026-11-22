@@ -41,6 +41,8 @@ export interface Difference {
   text: string;
   /** Whether the change is an improvement, a worsening, or neither. */
   tone: "good" | "bad" | "neutral";
+  /** Whether the value is above or below the baseline. */
+  direction: "up" | "down" | "none";
 }
 
 const tone = (diff: number, better: Better): Difference["tone"] => {
@@ -55,11 +57,13 @@ export const currencyDifference = (
   better: Better = "lower"
 ): Difference => {
   const diff = Math.round((value - baseline) * 100) / 100;
-  if (diff === 0) return { text: "no change", tone: "neutral" };
+  if (diff === 0)
+    return { text: "no change", tone: "neutral", direction: "none" };
   const sign = diff > 0 ? "+" : "−";
   return {
     text: `${sign}${formatCurrency(Math.abs(diff))}`,
-    tone: tone(diff, better)
+    tone: tone(diff, better),
+    direction: diff > 0 ? "up" : "down"
   };
 };
 
@@ -69,9 +73,11 @@ export const monthsDifference = (
   baseline: number
 ): Difference => {
   const diff = Math.round(value - baseline);
-  if (diff === 0) return { text: "no change", tone: "neutral" };
+  if (diff === 0)
+    return { text: "no change", tone: "neutral", direction: "none" };
   return {
     text: `${formatMonths(Math.abs(diff))} ${diff < 0 ? "sooner" : "later"}`,
-    tone: diff < 0 ? "good" : "bad"
+    tone: diff < 0 ? "good" : "bad",
+    direction: diff > 0 ? "up" : "down"
   };
 };

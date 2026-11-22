@@ -1,3 +1,5 @@
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { Box, Tooltip, Typography } from "@mui/material";
 
 import AddEventMenu from "./AddEventMenu";
@@ -5,6 +7,7 @@ import AddEventMenu from "./AddEventMenu";
 import type { EventType, LoanDefinition } from "../types";
 import { monthsBetween } from "../utilities/dates";
 import {
+  type Difference,
   currencyDifference,
   formatCurrency,
   formatMonths,
@@ -33,8 +36,43 @@ interface TimelineSegmentProps {
 interface Row {
   label: string;
   value: string;
-  comparison: string;
+  /** Baseline value shown before the difference, if any. */
+  baseline?: string;
+  difference: Difference;
 }
+
+// Lighter shades, since the tooltip background is dark.
+const DIFFERENCE_COLORS = {
+  down: "success.light",
+  up: "error.light",
+  none: "inherit"
+} as const;
+
+/** A difference, green with a down arrow if lower, red with an up arrow if higher. */
+const DifferenceText: React.FC<{ difference: Difference }> = ({
+  difference
+}) => {
+  const Arrow =
+    difference.direction === "up"
+      ? ArrowUpwardIcon
+      : difference.direction === "down"
+        ? ArrowDownwardIcon
+        : null;
+  return (
+    <Box
+      component="span"
+      sx={{
+        color: DIFFERENCE_COLORS[difference.direction],
+        fontWeight: 500,
+        display: "inline-flex",
+        alignItems: "center"
+      }}
+    >
+      {Arrow && <Arrow sx={{ fontSize: "1em" }} aria-hidden />}
+      {difference.text}
+    </Box>
+  );
+};
 
 /** The values for the segment's point in time, with baseline comparisons (5.8). */
 const segmentRows = (
@@ -52,28 +90,25 @@ const segmentRows = (
       value:
         formatCurrency(point.payment) +
         (point.extra > 0 ? ` + ${formatCurrency(point.extra)} extra` : ""),
-      comparison: `baseline ${formatCurrency(basePayment)}, ${
-        currencyDifference(payment, basePayment).text
-      }`
+      baseline: formatCurrency(basePayment),
+      difference: currencyDifference(payment, basePayment)
     },
     {
       label: "Remaining balance",
       value: formatCurrency(point.balance),
-      comparison: `baseline ${formatCurrency(baseBalance)}, ${
-        currencyDifference(point.balance, baseBalance).text
-      }`
+      baseline: formatCurrency(baseBalance),
+      difference: currencyDifference(point.balance, baseBalance)
     },
     {
       label: "Time until payoff",
       value: formatMonths(point.remainingMonths),
-      comparison: monthsDifference(payoffDiff, 0).text
+      difference: monthsDifference(payoffDiff, 0)
     },
     {
       label: "Total cost of the loan",
       value: formatCurrency(point.totalCost),
-      comparison: `baseline ${formatCurrency(baseline.final.totalCost)}, ${
-        currencyDifference(point.totalCost, baseline.final.totalCost).text
-      }`
+      baseline: formatCurrency(baseline.final.totalCost),
+      difference: currencyDifference(point.totalCost, baseline.final.totalCost)
     }
   ];
 };
@@ -159,7 +194,9 @@ const TimelineSegment: React.FC<TimelineSegmentProps> = ({
                     <strong>{row.value}</strong>
                     <br />
                     <Typography component="span" variant="caption">
-                      {row.comparison}
+                      {row.baseline !== undefined &&
+                        `baseline ${row.baseline}, `}
+                      <DifferenceText difference={row.difference} />
                     </Typography>
                   </Typography>
                 </Box>
